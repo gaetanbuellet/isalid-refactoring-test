@@ -58,14 +58,12 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $APPLICATION_CONTEXT = $this->applicationContext;
-
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
 
         if ($quote)
         {
             $_quoteFromRepository = $this->quoteRepository->getById($quote->id);
-            $usefulObject = $this->siteRepository->getById($quote->siteId);
+            $site = $this->siteRepository->getById($quote->siteId);
             $destinationOfQuote = $this->destinationRepository->getById($quote->destinationId);
 
             if(strpos($text, '[quote:destination_link]') !== false){
@@ -96,7 +94,7 @@ class TemplateManager
         }
 
         if (isset($destination))
-            $text = str_replace('[quote:destination_link]', $usefulObject->url . '/' . $destination->countryName . '/quote/' . $_quoteFromRepository->id, $text);
+            $text = str_replace('[quote:destination_link]', $site->url . '/' . $destination->countryName . '/quote/' . $_quoteFromRepository->id, $text);
         else
             $text = str_replace('[quote:destination_link]', '', $text);
 
@@ -104,7 +102,7 @@ class TemplateManager
          * USER
          * [user:*]
          */
-        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
+        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $this->applicationContext->getCurrentUser();
         if($_user) {
             (strpos($text, '[user:first_name]') !== false) and $text = str_replace('[user:first_name]'       , ucfirst(mb_strtolower($_user->firstname)), $text);
         }
