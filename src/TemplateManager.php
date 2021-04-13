@@ -67,32 +67,33 @@ class TemplateManager
             $destinationOfQuote = $this->destinationRepository->getById($quote->destinationId);
 
             $text = str_replace(
-                '[quote:summary_html]',
-                Quote::renderHtml($_quoteFromRepository),
+                [
+                    '[quote:summary_html]',
+                    '[quote:summary]',
+                    '[quote:destination_name]'
+                ],
+                [
+                    Quote::renderHtml($_quoteFromRepository),
+                    Quote::renderText($_quoteFromRepository),
+                    $destinationOfQuote->countryName
+                ],
                 $text
             );
-
-            $text = str_replace(
-                '[quote:summary]',
-                Quote::renderText($_quoteFromRepository),
-                $text
-            );
-
-            $text = str_replace('[quote:destination_name]',$destinationOfQuote->countryName,$text);
         }
 
-        if (isset($destinationOfQuote))
-            $text = str_replace('[quote:destination_link]', $site->url . '/' . $destinationOfQuote->countryName . '/quote/' . $_quoteFromRepository->id, $text);
-        else
-            $text = str_replace('[quote:destination_link]', '', $text);
+        $text = str_replace(
+            '[quote:destination_link]',
+            isset($destinationOfQuote) ? $site->url . '/' . $destinationOfQuote->countryName . '/quote/' . $_quoteFromRepository->id : '',
+            $text
+        );
 
-        /*
-         * USER
-         * [user:*]
-         */
         $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $this->applicationContext->getCurrentUser();
         if($_user) {
-            (strpos($text, '[user:first_name]') !== false) and $text = str_replace('[user:first_name]'       , ucfirst(mb_strtolower($_user->firstname)), $text);
+            $text = str_replace(
+                '[user:first_name]',
+                ucfirst(mb_strtolower($_user->firstname)),
+                $text
+            );
         }
 
         return $text;
