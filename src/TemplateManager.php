@@ -58,43 +58,11 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
+        $quoteReplacer = new \App\Replacer\Quote($this->siteRepository,  $this->quoteRepository, $this->destinationRepository);
+        $text = $quoteReplacer->replace($text, $data);
 
-        if ($quote)
-        {
-            $_quoteFromRepository = $this->quoteRepository->getById($quote->id);
-            $site = $this->siteRepository->getById($quote->siteId);
-            $destinationOfQuote = $this->destinationRepository->getById($quote->destinationId);
-
-            $text = str_replace(
-                [
-                    '[quote:summary_html]',
-                    '[quote:summary]',
-                    '[quote:destination_name]'
-                ],
-                [
-                    Quote::renderHtml($_quoteFromRepository),
-                    Quote::renderText($_quoteFromRepository),
-                    $destinationOfQuote->countryName
-                ],
-                $text
-            );
-        }
-
-        $text = str_replace(
-            '[quote:destination_link]',
-            isset($destinationOfQuote) ? $site->url . '/' . $destinationOfQuote->countryName . '/quote/' . $_quoteFromRepository->id : '',
-            $text
-        );
-
-        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $this->applicationContext->getCurrentUser();
-        if($_user) {
-            $text = str_replace(
-                '[user:first_name]',
-                ucfirst(mb_strtolower($_user->firstname)),
-                $text
-            );
-        }
+        $userReplacer = new \App\Replacer\User($this->applicationContext);
+        $text = $userReplacer->replace($text, $data);
 
         return $text;
     }
