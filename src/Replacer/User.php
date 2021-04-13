@@ -5,6 +5,7 @@ namespace App\Replacer;
 
 
 use App\Context\ApplicationContext;
+use App\Entity\Quote as EntityQuote;
 
 class User implements Replacer
 {
@@ -19,17 +20,17 @@ class User implements Replacer
         $this->applicationContext = $applicationContext;
     }
 
-    public function replace($text, $data)
+    public function replace($propertyName, array $data)
     {
-        $_user  = (isset($data['user'])  and ($data['user']  instanceof \App\Entity\User))  ? $data['user']  : $this->applicationContext->getCurrentUser();
-        if($_user) {
-            $text = str_replace(
-                '[user:first_name]',
-                ucfirst(mb_strtolower($_user->firstname)),
-                $text
-            );
-        }
+        $user  = (isset($data['user']) && ($data['user']  instanceof \App\Entity\User))
+            ? $data['user']
+            : $this->applicationContext->getCurrentUser();
 
-        return $text;
+        switch ($propertyName) {
+            case 'first_name':
+                return $user ? ucfirst(mb_strtolower($user->firstname)) : '';
+            default:
+                return '';
+        }
     }
 }

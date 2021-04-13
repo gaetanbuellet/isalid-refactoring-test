@@ -35,37 +35,30 @@ class Quote implements Replacer
         $this->destinationRepository = $destinationRepository;
     }
 
-    public function replace($text, $data)
+    public function replace($propertyName, array $data)
     {
         $quote = (isset($data['quote']) and $data['quote'] instanceof \App\Entity\Quote) ? $data['quote'] : null;
-        $site = $this->siteRepository->getById($quote->siteId);
 
-        if ($quote)
-        {
-            $quoteFromRepository = $this->quoteRepository->getById($quote->id);
-            $destinationOfQuote = $this->destinationRepository->getById($quote->destinationId);
-
-            $text = str_replace(
-                [
-                    '[quote:summary_html]',
-                    '[quote:summary]',
-                    '[quote:destination_name]'
-                ],
-                [
-                    EntityQuote::renderHtml($quoteFromRepository),
-                    EntityQuote::renderText($quoteFromRepository),
-                    $destinationOfQuote->countryName
-                ],
-                $text
-            );
+        switch ($propertyName) {
+            case 'summary_html':
+                return $quote ? EntityQuote::renderHtml($this->quoteRepository->getById($quote->id)) : '';
+            case 'summary':
+                return $quote ? EntityQuote::renderText($this->quoteRepository->getById($quote->id)): '';
+            case 'destination_name':
+                return $quote ? $this->destinationRepository->getById($quote->destinationId)->countryName : '';
+            case 'destination_link':
+                return $this->getDestinationLink($quote);
         }
+    }
 
-        $text = str_replace(
-            '[quote:destination_link]',
-            isset($destinationOfQuote) ? $site->url . '/' . $destinationOfQuote->countryName . '/quote/' . $quoteFromRepository->id : '',
-            $text
-        );
+    private function getDestinationLink(EntityQuote $quote)
+    {
+        if (!$quote) {
+            $destinationOfQuote = $this->destinationRepository->getById($quote->destinationId);
+            $site = $this->siteRepository->getById($quote->siteId);
+            $quoteFromRepository = $this->quoteRepository->getById($quote->id);
 
-        return $text;
+            return isset($destinationOfQuote) ? $site->url . '/' . $destinationOfQuote->countryName . '/quote/' . $quoteFromRepository->id : '';
+        }
     }
 }

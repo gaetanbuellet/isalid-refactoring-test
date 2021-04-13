@@ -6,5 +6,10 @@ namespace App\Replacer;
 
 interface Replacer
 {
-    public function replace($text, $data);
+    /**
+     * @param $propertyName
+     * @param array $data
+     * @return string
+     */
+    public function replace($propertyName, array $data);
 }

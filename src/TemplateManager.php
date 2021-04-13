@@ -2,10 +2,8 @@
 
 namespace App;
 
-use App\Context\ApplicationContext;
 use App\Entity\Template;
 use App\Replacer\Factory;
-use App\Repository\Repository;
 
 class TemplateManager
 {
@@ -34,11 +32,17 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $quoteReplacer = $this->replacerFactory->create('quote');
-        $text = $quoteReplacer->replace($text, $data);
+        //We find something like [domain:property] and catch domain group domain and property
+        preg_match_all('/\[(?P<domain>\w+):(?P<property>\w+)\]/', $text, $matches, PREG_SET_ORDER);
 
-        $userReplacer = $this->replacerFactory->create('user');
-        $text = $userReplacer->replace($text, $data);
+        foreach ($matches as $match) {
+            $replacer = $this->replacerFactory->create($match['domain']);
+            $text = str_replace(
+                $match[0],
+                $replacer->replace($match['property'], $data),
+                $text
+            );
+        }
 
         return $text;
     }
