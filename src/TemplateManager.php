@@ -70,27 +70,19 @@ class TemplateManager
                 $destination = $this->destinationRepository->getById($quote->destinationId);
             }
 
-            $containsSummaryHtml = strpos($text, '[quote:summary_html]');
-            $containsSummary     = strpos($text, '[quote:summary]');
+            $text = str_replace(
+                '[quote:summary_html]',
+                Quote::renderHtml($_quoteFromRepository),
+                $text
+            );
 
-            if ($containsSummaryHtml !== false || $containsSummary !== false) {
-                if ($containsSummaryHtml !== false) {
-                    $text = str_replace(
-                        '[quote:summary_html]',
-                        Quote::renderHtml($_quoteFromRepository),
-                        $text
-                    );
-                }
-                if ($containsSummary !== false) {
-                    $text = str_replace(
-                        '[quote:summary]',
-                        Quote::renderText($_quoteFromRepository),
-                        $text
-                    );
-                }
-            }
+            $text = str_replace(
+                '[quote:summary]',
+                Quote::renderText($_quoteFromRepository),
+                $text
+            );
 
-            (strpos($text, '[quote:destination_name]') !== false) and $text = str_replace('[quote:destination_name]',$destinationOfQuote->countryName,$text);
+            $text = str_replace('[quote:destination_name]',$destinationOfQuote->countryName,$text);
         }
 
         if (isset($destination))
