@@ -3,12 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Quote;
-use App\Helper\SingletonTrait;
 
 class QuoteRepository implements Repository
 {
-    use SingletonTrait;
-
     /**
      * @param int $id
      *

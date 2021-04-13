@@ -6,12 +6,43 @@ use App\Context\ApplicationContext;
 use App\Entity\Quote;
 use App\Entity\Template;
 use App\Entity\User;
-use App\Repository\DestinationRepository;
-use App\Repository\QuoteRepository;
-use App\Repository\SiteRepository;
+use App\Repository\Repository;
 
 class TemplateManager
 {
+    /**
+     * @var ApplicationContext
+     */
+    private $applicationContext;
+
+    /**
+     * @var Repository
+     */
+    private $quoteRepository;
+
+    /**
+     * @var Repository
+     */
+    private $siteRepository;
+
+    /**
+     * @var Repository
+     */
+    private $destinationRepository;
+
+    public function __construct(
+        ApplicationContext $applicationContext,
+        Repository $quoteRepository,
+        Repository $siteRepository,
+        Repository $destinationRepository
+    ) {
+
+        $this->applicationContext = $applicationContext;
+        $this->quoteRepository = $quoteRepository;
+        $this->siteRepository = $siteRepository;
+        $this->destinationRepository = $destinationRepository;
+    }
+
     public function getTemplateComputed(Template $tpl, array $data)
     {
         if (!$tpl) {
@@ -27,18 +58,18 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $APPLICATION_CONTEXT = ApplicationContext::getInstance();
+        $APPLICATION_CONTEXT = $this->applicationContext;
 
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
 
         if ($quote)
         {
-            $_quoteFromRepository = QuoteRepository::getInstance()->getById($quote->id);
-            $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
-            $destinationOfQuote = DestinationRepository::getInstance()->getById($quote->destinationId);
+            $_quoteFromRepository = $this->quoteRepository->getById($quote->id);
+            $usefulObject = $this->siteRepository->getById($quote->siteId);
+            $destinationOfQuote = $this->destinationRepository->getById($quote->destinationId);
 
             if(strpos($text, '[quote:destination_link]') !== false){
-                $destination = DestinationRepository::getInstance()->getById($quote->destinationId);
+                $destination = $this->destinationRepository->getById($quote->destinationId);
             }
 
             $containsSummaryHtml = strpos($text, '[quote:summary_html]');

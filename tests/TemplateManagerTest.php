@@ -3,29 +3,43 @@
 use App\Context\ApplicationContext;
 use App\Entity\Quote;
 use App\Entity\Template;
+use App\Entity\User;
 use App\Repository\DestinationRepository;
+use App\Repository\QuoteRepository;
+use App\Repository\SiteRepository;
 use App\TemplateManager;
-
-require_once __DIR__ . '/../src/Entity/Destination.php';
-require_once __DIR__ . '/../src/Entity/Quote.php';
-require_once __DIR__ . '/../src/Entity/Site.php';
-require_once __DIR__ . '/../src/Entity/Template.php';
-require_once __DIR__ . '/../src/Entity/User.php';
-require_once __DIR__ . '/../src/Helper/SingletonTrait.php';
-require_once __DIR__ . '/../src/Context/ApplicationContext.php';
-require_once __DIR__ . '/../src/Repository/Repository.php';
-require_once __DIR__ . '/../src/Repository/DestinationRepository.php';
-require_once __DIR__ . '/../src/Repository/QuoteRepository.php';
-require_once __DIR__ . '/../src/Repository/SiteRepository.php';
-require_once __DIR__ . '/../src/TemplateManager.php';
 
 class TemplateManagerTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @var ApplicationContext|PHPUnit_Framework_MockObject_MockObject
+     */
+    private $applicationContext;
+
+    /**
+     * @var QuoteRepository|PHPUnit_Framework_MockObject_MockObject
+     */
+    private $quoteRepository;
+
+    /**
+     * @var SiteRepository|PHPUnit_Framework_MockObject_MockObject
+     */
+    private $siteRepository;
+
+    /**
+     * @var DestinationRepository|PHPUnit_Framework_MockObject_MockObject
+     */
+    private $destinationRepository;
+
     /**
      * Init the mocks
      */
     public function setUp()
     {
+        $this->applicationContext = $this->createMock(ApplicationContext::class);
+        $this->quoteRepository = $this->createMock(QuoteRepository::class);
+        $this->siteRepository = $this->createMock(SiteRepository::class);
+        $this->destinationRepository = $this->createMock(DestinationRepository::class);
     }
 
     /**
@@ -42,11 +56,26 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
     {
         $faker = \Faker\Factory::create();
 
-        $destinationId                  = $faker->randomNumber();
-        $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
-        $expectedUser        = ApplicationContext::getInstance()->getCurrentUser();
+        $destinationId       = $faker->randomNumber();
+        $expectedDestination = new \App\Entity\Destination(
+            $destinationId,
+            $faker->country,
+            'en',
+            $faker->slug
+        );
+        $this->destinationRepository->expects($this->any())
+            ->method('getById')
+            ->willReturn($expectedDestination);
+
+        $expectedUser =  new User($faker->randomNumber(), $faker->firstName, $faker->lastName, $faker->email);
+        $this->applicationContext->expects($this->any())
+            ->method('getCurrentUser')
+            ->willReturn($expectedUser);
 
         $quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date());
+        $this->quoteRepository->expects($this->any())
+            ->method('getById')
+            ->willReturn($quote);
 
         $template = new Template(
             1,
@@ -60,7 +89,12 @@ Bien cordialement,
 
 L'équipe de Shipper
 ");
-        $templateManager = new TemplateManager();
+        $templateManager = new TemplateManager(
+            $this->applicationContext,
+            $this->quoteRepository,
+            $this->siteRepository,
+            $this->destinationRepository
+        );
 
         $message = $templateManager->getTemplateComputed(
             $template,
