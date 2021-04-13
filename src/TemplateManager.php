@@ -3,44 +3,20 @@
 namespace App;
 
 use App\Context\ApplicationContext;
-use App\Entity\Quote;
 use App\Entity\Template;
-use App\Entity\User;
+use App\Replacer\Factory;
 use App\Repository\Repository;
 
 class TemplateManager
 {
     /**
-     * @var ApplicationContext
+     * @var Factory
      */
-    private $applicationContext;
+    private $replacerFactory;
 
-    /**
-     * @var Repository
-     */
-    private $quoteRepository;
+    public function __construct(Factory $replacerFactory){
 
-    /**
-     * @var Repository
-     */
-    private $siteRepository;
-
-    /**
-     * @var Repository
-     */
-    private $destinationRepository;
-
-    public function __construct(
-        ApplicationContext $applicationContext,
-        Repository $quoteRepository,
-        Repository $siteRepository,
-        Repository $destinationRepository
-    ) {
-
-        $this->applicationContext = $applicationContext;
-        $this->quoteRepository = $quoteRepository;
-        $this->siteRepository = $siteRepository;
-        $this->destinationRepository = $destinationRepository;
+        $this->replacerFactory = $replacerFactory;
     }
 
     public function getTemplateComputed(Template $tpl, array $data)
@@ -58,10 +34,10 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $quoteReplacer = new \App\Replacer\Quote($this->siteRepository,  $this->quoteRepository, $this->destinationRepository);
+        $quoteReplacer = $this->replacerFactory->create('quote');
         $text = $quoteReplacer->replace($text, $data);
 
-        $userReplacer = new \App\Replacer\User($this->applicationContext);
+        $userReplacer = $this->replacerFactory->create('user');
         $text = $userReplacer->replace($text, $data);
 
         return $text;

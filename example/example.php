@@ -20,12 +20,15 @@ Bien cordialement,
 
 L'équipe de Shipper
 ");
-$templateManager = new TemplateManager(
+
+$replacerFactory = new \App\Replacer\Factory(
     new \App\Context\ApplicationContext(),
     new \App\Repository\QuoteRepository(),
     new \App\Repository\SiteRepository(),
     new \App\Repository\DestinationRepository()
 );
+
+$templateManager = new TemplateManager($replacerFactory);
 
 $message = $templateManager->getTemplateComputed(
     $template,

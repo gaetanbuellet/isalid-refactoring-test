@@ -90,10 +90,12 @@ Bien cordialement,
 L'équipe de Shipper
 ");
         $templateManager = new TemplateManager(
-            $this->applicationContext,
-            $this->quoteRepository,
-            $this->siteRepository,
-            $this->destinationRepository
+            new \App\Replacer\Factory(
+                $this->applicationContext,
+                $this->quoteRepository,
+                $this->siteRepository,
+                $this->destinationRepository
+            )
         );
 
         $message = $templateManager->getTemplateComputed(
